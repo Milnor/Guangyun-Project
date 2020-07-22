@@ -56,6 +56,12 @@ def main():
 
 	sys.exit("done")
 
+	# rhyme id "sp01" == first rhyme group in shang ping
+	#	... sp28 is the last rhyme group in that volume
+
+	# word_head's within the same voice_part tags
+	#	belong to the same xiaoyun 'homophone group'	
+
 	for each in rhymes:
 		#print("rhyme: ", each.attrib)
 		head_words = each.findall('word_head')
