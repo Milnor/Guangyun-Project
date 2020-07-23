@@ -1,9 +1,25 @@
 #!/usr/bin/env python3
 
-from xml.dom import minidom
+#from xml.dom import minidom
 import xml.etree.ElementTree as ET
 import sys
 
+def parse_volume(vol, tag, last):
+	for i in range(1, last + 1):
+		key = tag +	str(i).zfill(2) # e.g. sp01 .. sp26
+		#print("key = {}".format(key))
+		print("===rhyme group {}===".format(i))
+		for rhyme in vol:
+			for vp in rhyme.findall('voice_part'):
+				print("\txiaoyun {}".format(vp.attrib))
+				# line above gives IPA/onyomi of homophone group
+				words = vp.findall('word_head')
+				#word_list = []
+				for character in words:
+					#word_list.append(character)
+					print("\t\t{}".format(character.text))
+				#print("\twords={}".format(word_list))
+				
 def main():
 	'''
 	gy = minidom.parse('data/sbgy.xml')
@@ -46,9 +62,14 @@ def main():
 	sping1 = volumes[0]
 
 	rhymes = sping1.findall('rhyme')
+	parse_volume(rhymes, "sp", 3) # TODO: set 3 to 26
+
+	sys.exit("end at parse_volume")
+
 	for rhyme in rhymes:
 		vp = rhyme.findall('voice_part')
 		for v in vp:
+			print("==new rhyme group==\n")
 			head = v.findall('word_head')
 			#print("head word: {}".format(head))
 			for w in head:
