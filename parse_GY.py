@@ -1,129 +1,54 @@
 #!/usr/bin/env python3
 
-#from xml.dom import minidom
 import xml.etree.ElementTree as ET
 import sys
 
 def parse_volume(vol, tag, last):
 	for i in range(1, last + 1):
 		key = tag +	str(i).zfill(2) # e.g. sp01 .. sp26
-		#print("key = {}".format(key))
 		print("===rhyme group {}===".format(i))
 		for rhyme in vol:
 			for vp in rhyme.findall('voice_part'):
 				print("\txiaoyun {}".format(vp.attrib))
 				# line above gives IPA/onyomi of homophone group
 				words = vp.findall('word_head')
-				#word_list = []
+				word_list = ""
 				for character in words:
-					#word_list.append(character)
-					print("\t\t{}".format(character.text))
-				#print("\twords={}".format(word_list))
+					word_list += character.text
+				print("\t{}".format(word_list))
 				
 def main():
-	'''
-	gy = minidom.parse('data/sbgy.xml')
-	#items = gy.getElementsByTagName('volume_title')
-	items = gy.getElementsByTagName('volume')
-	print("volume_title:\n")
-	for each in items:
-		print(each)
 
-	sys.exit()
-	'''
-	'''
-	volume id="v1"	// v1 = shangping1 , v2 = xiaping2, v3 = shang3
-		volume_title
-		catalog
-			rhythmic_entry
-				fanqie
-		rhyme id="sp01"	// xp05, 
-			voice_part ipa="..." onyomi="..."
-				word_head id="...."
-
-	'''
-
-
+	# Read in the XML tree
 	tree = ET.parse('data/sbgy.xml')
 	root = tree.getroot()
 
-	print("00={}".format(root[0][0].text))	
-
-	print("01={}".format(root[0][1].text))	
-	#print("10={}".format(root[1][0].text))	
-	#print("11={}".format(root[1][1].text))	
-	
-	#for volumes in root.iter('volume'):
-	#	print("v={}".format(volumes))
-
+	# Store each volume: Shang Ping, Xia Ping, Shang, Qu, and Ru
 	volumes = root.findall('volume')
-	print("v0={}".format(volumes[0].attrib))
-
 	sping1 = volumes[0]
-
-	rhymes = sping1.findall('rhyme')
-	parse_volume(rhymes, "sp", 3) # TODO: set 3 to 26
-
-	sys.exit("end at parse_volume")
-
-	for rhyme in rhymes:
-		vp = rhyme.findall('voice_part')
-		for v in vp:
-			print("==new rhyme group==\n")
-			head = v.findall('word_head')
-			#print("head word: {}".format(head))
-			for w in head:
-				print("w={}".format(w.text))
-
-	sys.exit("done")
-
-	# rhyme id "sp01" == first rhyme group in shang ping
-	#	... sp28 is the last rhyme group in that volume
-
-	# word_head's within the same voice_part tags
-	#	belong to the same xiaoyun 'homophone group'	
-
-	for each in rhymes:
-		#print("rhyme: ", each.attrib)
-		head_words = each.findall('word_head')
-		print("head words: ", head_words)
-	sys.exit("stop here.")
-
 	xping2 = volumes[1]
-	shang = volumes[2]
-	qu = volumes[3]
-	ru = volumes[4]
-
-	print(sping1.text, sping1.attrib)
-
-	for child in sping1:
-		print(child.text, child.attrib)
-		for subitem in child:
-			print(subitem.text, subitem.attrib)
-			#words = subitem.findall('word_head')
-			#print("words={}".format(words))
+	shang3 = volumes[2]
+	qu4 = volumes[3]
+	ru5 = volumes[4]
 
 
+	# Run each individual volume through parser
+	r1 = sping1.findall('rhyme')	# 28 rhyme groups in Shang Ping
+	parse_volume(r1, "sp", 2) 		# TODO: set 2 to 28
 	
+	r2 = xping2.findall('rhyme')	# 29 rhyme groups in Xia Piang
+	parse_volume(r2, "xp", 2) 		# TODO: set 2 to 29
 
-	sys.exit("pause...")
+	r3 = shang3.findall('rhyme')	# 55 rhyme groups in Shang
+	parse_volume(r3, "s", 2) 		# TODO: set 2 to 55
 
-	#print(root.tag)
-	for child in root:
-		print(child.tag, child.attrib)
-		#print(dir(child))
+	r4 = qu4.findall('rhyme') 		# 60 rhyme groups in Qu
+	parse_volume(r4, "q", 2) 		# TODO: set 2 to 60
 
+	r5 = ru5.findall('rhyme')		# 34 rhyme groups in Ru
+	parse_volume(r5, "r", 2)		# TODO: set 2 to 34
 
-	
-
-
-	sys.exit("pause here for now")
-
-	for elem in root:
-		for subelem in elem:
-			print(subelem.text)
-
-	
+	sys.exit("stop here for now")
 
 if __name__ == "__main__":
 	main()
