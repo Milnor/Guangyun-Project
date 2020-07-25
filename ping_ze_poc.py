@@ -3,12 +3,29 @@
 import sys
 
 def ping_ze(zi, shujuku):
-	if zi in shujuku[1]:
-		return "-"			# Shang Ping
-	elif zi in shujuku[2]:
-		return "-"			# Xia Ping
+
+	isPing = False
+	isZe = False
+
+	if zi in shujuku[1]:	# Shang Ping
+		isPing = True
+	elif zi in shujuku[2]:	# Xia Ping
+		isPing = True
+	elif zi in shujuku[3]:	# Shang
+		isZe = True			
+	elif zi in shujuku[4]: 	# Qu
+		isZe = True
+	elif zi in shujuku[5]:	# Ru
+		isZe = True
+
+	if isPing and not isZe:
+		return "平"			# Ping
+	elif not isPing and isZe:
+		return "仄"			# Ze
+	elif isPing and isZe:
+		return "?"			# Could be either
 	else:
-		return "~"			# Shang, Qu, or Ru
+		return "* "			# Not Found
 
 def main():
 
@@ -18,25 +35,28 @@ def main():
 	# Read it into a string
 	data = gy.read()
 
-	volumes = data.split("---VOL---")
-	#print("There are {} volumes".format(len(volumes)))
-	#print(volumes[5])
-	# volumes[0] = (blank)
-	# volumes[1] = ping1 // dong
-	# volumes[2] = ping1 // xian
-	# volumes[3] = shang // chong?
-	# volumes[4] = qu // song	
-	# volumes[5] = ru // wu 
+	'''
+	findme = "世"
+	if findme in data:
+		print("found {}!".format(findme))
+	else:
+		print("failed to find {}...".format(findme))
+	'''
 
-	# TODO: make this acommand line argument
-	poem = open("test_inputs/libai.txt", "r")
+	volumes = data.split("---VOL---")
+	# volumes[0] = (blank)
+
+	# TODO: make this a command line argument
+	#poem = open("test_inputs/libai.txt", "r")
+	poem = open("test_inputs/dufu.txt", "r")	
 
 	i = 0
 	for line in poem:
-		print("{} = {}".format(i, line))
 		i += 1
+		tones = ""
 		for char in line.strip():
-			print("\t{} ({})".format(char, ping_ze(char, volumes)))
+			tones += ping_ze(char, volumes)
+		print("{} \t{} \t{}".format(str(i).zfill(4), line.strip(), tones))
 
 	gy.close()
 	poem.close()
