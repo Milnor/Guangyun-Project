@@ -31,11 +31,6 @@ def print_global_stats():
 	print("{} kSpecializedSemanticVariant".format(specvar))
 	print("{} Errors".format(error))
 
-# Input: e.g. U+31347, U+4DB1
-# Output: two Hanzi separated by a comma, ending in newline
-def text2bytes(one, two):
-	return bytes(one, "utf-8") + b',' + bytes(two, "utf-8") + b'\n'
-
 def process_line(data, sem_out, z_out):
 
 	global semvar
@@ -47,13 +42,18 @@ def process_line(data, sem_out, z_out):
 	global error
 
 	parsed = data.split()	# split on whitespace
+	char1 = parsed[0][2:]
+	char2 = parsed[2].split('<')[0][2:]		# remove extraneous "<kFenn", etc.	
+	int1 = int("0x" + char1, 16)
+	int2 = int("0x" + char2, 16)
+
 	# note that last element in line may contain "<kFenn" or sth. similar
 	if parsed[1] == "kSemanticVariant":
 		semvar += 1
-		sem_out.write(text2bytes(parsed[0], parsed[2].split('<')[0]))
+		print(f'{chr(int1)},{chr(int2)}\n', file=sem_out)
 	elif parsed[1] == "kZVariant":
 		zvar += 1
-		z_out.write(text2bytes(parsed[0], parsed[2].split('<')[0]))
+		print(f'{chr(int1)},{chr(int2)}\n', file=z_out)
 	elif parsed[1] == "kSpoofingVariant":
 		spoofvar += 1
 	elif parsed[1] == "kTraditionalVariant":
@@ -70,8 +70,8 @@ def main():
 
 	# Open files for input and output
 	unihan = open("data/Unihan_Variants.txt", "r")
-	s_var = open("data/s_variants.csv", "wb")
-	z_var = open("data/z_variants.csv", "wb")
+	s_var = open("data/s_variants.csv", 'w', encoding='utf-8')
+	z_var = open("data/z_variants.csv", 'w', encoding='utf-8')
 
 	line_count = 1
 
@@ -92,6 +92,8 @@ def main():
 		line_count += 1
 
 	print_global_stats()
+
+	#s_var.write('\u9109'.encode("utf-8"))
 
 	# We are done
 	unihan.close()
