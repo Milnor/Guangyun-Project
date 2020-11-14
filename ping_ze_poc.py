@@ -31,7 +31,8 @@ def codepoints2chars(codepoints):
 	for each in temp:
 		num = each[2:]
 		#print("num={}".format(num))
-		results.append(f'\\u{num}'.encode().decode('unicode_escape'))
+		# The [0] is to strip dictionary (e.g. Matthews) name if there is one
+		results.append(f'\\u{num}'.encode().decode('unicode_escape')[0])
 
 	return results
 
@@ -45,28 +46,53 @@ def slow_search(zi, shujuku):
 	query = c_dict.unihan.lookup_char(zi)
 	glyph = query.first()
 	alternates = glyph.kZVariant
-	variants = codepoints2chars(alternates)
+	kz_vars = codepoints2chars(alternates)
+	# which of these also matter?
+	sem_vars = codepoints2chars(glyph.kSemanticVariant)
+	spec_vars = codepoints2chars(glyph.kSpecializedSemanticVariant) 
 
 	if verbose:
 		debug += "[!] Attempting slow search on {}".format(zi) + "\n"
-		debug += "\tvariants = {}\n".format(variants)
+		debug += "\tkZVariants = {}\n".format(kz_vars)
+		debug += "\tkSemanticVariants = {}\n".format(sem_vars)
+		debug += "\tkSpecializedSemanticVariants = {}\n".format(spec_vars)
+
+	# It is a nuisance to combine lists when some may be none
+	variants = []
+	for each in (kz_vars, sem_vars, spec_vars):
+		if each is not None:
+			variants.extend(each)
+	# Remove duplicates
+	variants = list(dict.fromkeys(variants))
 
 	if variants is None:
+		if verbose:
+			debug += "\t[-] Slow search failed.\n"
 		return '*'			# Not Found
 	else:
 		isPing = False
 		isZe = False
 
 		for each in variants:
-			if each in shujuku[1]:	# Shang Ping
+			if each in shujuku[1]:		# Shang Ping
+				if verbose:
+					debug += "\t[+] Slow search found {}!\n".format(each)
 				isPing = True
 			elif each in shujuku[2]:	# Xia Ping
+				if verbose:
+					debug += "\t[+] Slow search found {}!\n".format(each)
 				isPing = True
 			elif each in shujuku[3]:	# Shang
+				if verbose:
+					debug += "\t[+] Slow search found {}!\n".format(each)
 				isZe = True			
 			elif each in shujuku[4]: 	# Qu
+				if verbose:
+					debug += "\t[+] Slow search found {}!\n".format(each)
 				isZe = True
 			elif each in shujuku[5]:	# Ru
+				if verbose:
+					debug += "\t[+] Slow search found {}!\n".format(each)
 				isZe = True
 
 		if isPing and not isZe:
@@ -76,6 +102,8 @@ def slow_search(zi, shujuku):
 		elif isPing and isZe:
 			return "?"			# Could be either
 		else:
+			if verbose:
+				debug += "\t[-] Slow search failed.\n"
 			return '*'			# Not Found
 
 # to be deprecated?
@@ -163,8 +191,8 @@ def main():
 	# volumes[0] = (blank)
 
 	# TODO: make this a command line argument
-	#poem = open("test_inputs/libai.txt", "r")
-	poem = open("test_inputs/dufu.txt", "r")	
+	poem = open("test_inputs/libai.txt", "r")
+	#poem = open("test_inputs/dufu.txt", "r")	
 
 	# TODO: make this a command line argument
 	verbose = True
