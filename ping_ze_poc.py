@@ -24,6 +24,8 @@ def _add_candidates(zi, c_list, variants):
 			c_list.append(first)
 
 def codepoints2chars(codepoints):
+	if codepoints is None:
+		return None
 	results = []
 	temp = codepoints.split()
 	for each in temp:
@@ -39,18 +41,42 @@ def slow_search(zi, shujuku):
 	global debug
 	global c_dict
 
-	if verbose:
-		debug += "[!] Attempting slow search on {}".format(zi) + "\n"
-	
 	# See cihai.git-pull.com/api.html
 	query = c_dict.unihan.lookup_char(zi)
 	glyph = query.first()
 	alternates = glyph.kZVariant
 	variants = codepoints2chars(alternates)
 
-	debug += "\tvariants = {}\n".format(variants)
+	if verbose:
+		debug += "[!] Attempting slow search on {}".format(zi) + "\n"
+		debug += "\tvariants = {}\n".format(variants)
 
-	return '8'
+	if variants is None:
+		return '*'			# Not Found
+	else:
+		isPing = False
+		isZe = False
+
+		for each in variants:
+			if each in shujuku[1]:	# Shang Ping
+				isPing = True
+			elif each in shujuku[2]:	# Xia Ping
+				isPing = True
+			elif each in shujuku[3]:	# Shang
+				isZe = True			
+			elif each in shujuku[4]: 	# Qu
+				isZe = True
+			elif each in shujuku[5]:	# Ru
+				isZe = True
+
+		if isPing and not isZe:
+			return "平"			# Ping
+		elif not isPing and isZe:
+			return "仄"			# Ze
+		elif isPing and isZe:
+			return "?"			# Could be either
+		else:
+			return '*'			# Not Found
 
 # to be deprecated?
 # Repeat search with variants/allographs
@@ -137,8 +163,8 @@ def main():
 	# volumes[0] = (blank)
 
 	# TODO: make this a command line argument
-	poem = open("test_inputs/libai.txt", "r")
-	#poem = open("test_inputs/dufu.txt", "r")	
+	#poem = open("test_inputs/libai.txt", "r")
+	poem = open("test_inputs/dufu.txt", "r")	
 
 	# TODO: make this a command line argument
 	verbose = True
