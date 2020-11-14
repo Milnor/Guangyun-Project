@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 import sys
+from cihai.core import Cihai
 
 verbose = False
 debug = ""
+c_dict = Cihai()
 
-
-def add_candidates(zi, c_list, variants):
+# to be deprecated?
+def _add_candidates(zi, c_list, variants):
 
 	data = variants.read()
 	lines = data.split()
@@ -21,8 +23,38 @@ def add_candidates(zi, c_list, variants):
 		elif zi == second:
 			c_list.append(first)
 
-# Repeat search with variants/allographs
+def codepoints2chars(codepoints):
+	results = []
+	temp = codepoints.split()
+	for each in temp:
+		num = each[2:]
+		#print("num={}".format(num))
+		results.append(f'\\u{num}'.encode().decode('unicode_escape'))
+
+	return results
+
 def slow_search(zi, shujuku):
+
+	global verbose
+	global debug
+	global c_dict
+
+	if verbose:
+		debug += "[!] Attempting slow search on {}".format(zi) + "\n"
+	
+	# See cihai.git-pull.com/api.html
+	query = c_dict.unihan.lookup_char(zi)
+	glyph = query.first()
+	alternates = glyph.kZVariant
+	variants = codepoints2chars(alternates)
+
+	debug += "\tvariants = {}\n".format(variants)
+
+	return '8'
+
+# to be deprecated?
+# Repeat search with variants/allographs
+def _slow_search(zi, shujuku):
 	
 	global verbose
 	global debug
@@ -74,6 +106,18 @@ def main():
 
 	global verbose
 	global debug
+	global c_dict
+
+	verbose = True	# TODO: make this a command line switch
+
+	# Install Unihan if needed
+	if not c_dict.unihan.is_bootstrapped:
+		c.unihan.bootstrap()
+
+	c_dict.unihan.add_plugin(
+		'cihai.data.unihan.dataset.UnihanVariants', namespace='variants'
+	)	# See cihai.git-pull.com/examples.html
+
 
 	# Open our Guang Yun database
 	gy = open("data/sbgy.txt", "r")
