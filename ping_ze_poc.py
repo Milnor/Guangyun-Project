@@ -7,22 +7,6 @@ verbose = False
 debug = ""
 c_dict = Cihai()
 
-# to be deprecated?
-def _add_candidates(zi, c_list, variants):
-
-	data = variants.read()
-	lines = data.split()
-
-	for line in lines:
-		characters = line.split(",")
-		first = characters[0]
-		second = characters[1]
-
-		if zi == first:
-			c_list.append(second)
-		elif zi == second:
-			c_list.append(first)
-
 def codepoints2chars(codepoints):
 	if codepoints is None:
 		return None
@@ -106,31 +90,6 @@ def slow_search(zi, shujuku):
 				debug += "\t[-] Slow search failed.\n"
 			return '*'			# Not Found
 
-# to be deprecated?
-# Repeat search with variants/allographs
-def _slow_search(zi, shujuku):
-	
-	global verbose
-	global debug
-
-	sCandidates = []		# kSemanticVariants
-	zCandidates = []		# zVariants
-
-	if verbose:
-		debug += "[!] Attempting slow search on {}".format(zi) + "\n"
-
-	with open("data/s_variants.csv", 'r', encoding='utf-8') as sfile:
-		add_candidates(zi, sCandidates, sfile)
-
-	with open("data/z_variants.csv", 'r', encoding='utf-8') as zfile:
-		add_candidates(zi, zCandidates, zfile)
-
-	if verbose:
-		debug += "\tsVariants: {}\n".format(sCandidates)
-		debug += "\tzVariants: {}\n".format(zCandidates)
-
-	return "*"				# Not Found
-
 def ping_ze(zi, shujuku):
 
 	isPing = False
@@ -162,7 +121,15 @@ def main():
 	global debug
 	global c_dict
 
-	verbose = True	# TODO: make this a command line switch
+	# Parse command line arguments
+	if len(sys.argv) < 2:
+		print("Usage: {} poem.txt [-v]\n".format(sys.argv[0]))
+		sys.exit()
+
+	input_file = sys.argv[1]
+	if len(sys.argv) > 2:
+		if sys.argv[2] == "-v":
+			verbose = True
 
 	# Install Unihan if needed
 	if not c_dict.unihan.is_bootstrapped:
@@ -190,12 +157,7 @@ def main():
 	volumes = data.split("---VOL---")
 	# volumes[0] = (blank)
 
-	# TODO: make this a command line argument
-	poem = open("test_inputs/libai.txt", "r")
-	#poem = open("test_inputs/dufu.txt", "r")	
-
-	# TODO: make this a command line argument
-	verbose = True
+	poem = open(input_file, "r")
 
 	i = 0
 	for line in poem:
