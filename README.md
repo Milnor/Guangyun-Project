@@ -1,3 +1,5 @@
+![GuangYun](https://user-images.githubusercontent.com/7789866/115130190-60ffa700-9fbb-11eb-92ac-fd2dd0d2b5e6.png)
+
 # Guangyun-Project
 automate textual analysis using the Guangyun rhyme dictionary
 
