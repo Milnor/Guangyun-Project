@@ -15,7 +15,7 @@ class Tone(Enum):
 
 class GuangYun:
     """ Object representation of a Song rhyme dictionary """
-   
+
     def __new__(cls):
         # Stolen boilerplate to make it a singleton:
         if not hasattr(cls, 'instance'):
@@ -49,7 +49,7 @@ class GuangYun:
 
 
     def __str__(self):
-        rhyme_dict = f"Guang Yun Rhyme Dictionary:\n"
+        rhyme_dict = "Guang Yun Rhyme Dictionary:\n"
         for vol in self.volumes:
             rhyme_dict += f"\t* {vol}\n"
         return rhyme_dict
@@ -57,46 +57,61 @@ class GuangYun:
 class Volume:
     """ One of the five volumes of the rhyme dictionary """
 
-    def __init__(self, volume_data: xml.etree.ElementTree.Element, name: str, tone: Tone):
+    def __init__(self, volume_data: ET.Element, name: str, tone: Tone):
+        self.rhymes = []
         self.name = name
         self.tone = tone
-        print(type(volume_data))
 
-    def get_char(self, character):
-        """ Search dictionary for character """
-        pass
+        for rhyme in volume_data.findall('rhyme'):
+            # each[0].text = yi, er, san
+            #breakpoint()
+            #for zi in rhyme.findall('voice_part'):
+                # zi[0].text = dong
+                # zi[1].text = next homophone...
+                # then the next iteration gives the next rhyme
+            #breakpoint()
+            self.rhymes.append(Rhyme(rhyme, rhyme[1][0].text))
 
     def __str__(self):
-        return f"{self.name}, {self.tone}"
+        return f"{self.name}, {self.tone}, {len(self.rhymes)} rhymes"
 
+class Rhyme:
+    """ A rhyme group """
 
-def parse_volume(vol, output):
-    """ Extract a volume from the XML """
+    def __init__(self, rhyme_data: ET.Element, name: str):
+        self.head_character = name
+        self.homophone_groups = []
+        #print(type(rhyme_data))
+        for group in rhyme_data.findall('voice_part'):
+            if "\n" not in group[0].text:
+                self.homophone_groups.append(Homophone_Group(group, group[0].text))
+        #print(self.homophone_groups)
 
-    rhyme_count = 0
-    voice_count = 0
-    word_count = 0
+    def __str__(self):
+        return f"{self.head_character} rhyme group, {len(self.homophone_groups)} xiao yun"
 
-    output.write("---VOL---\r\n")
+class Homophone_Group:
+    """ A xiaoyun """
 
-    for rhyme in vol:
-        rhyme_count = rhyme_count + 1
-        for voice_part in rhyme.findall('voice_part'):
-            voice_count = voice_count + 1
-            words = voice_part.findall('word_head')
-            word_list = ""
-            for character in words:
-                word_count = word_count + 1
-                word_list += character.text
-            output.write(word_list + "\r\n")
-        output.write("\r\n")    # Extra space after rhyme group
+    def __init__(self, group, name):
+        self.head_character = name
+        breakpoint()
+        print(f"{self.head_character=}")
+        self.fanqie = group[0][0][1].text
+        self.members = []
+        for each in group:
+            self.members.append(each.text)
+        #breakpoint()
+        #print(f"{self.head_character=}")
 
+    def __str__(self):
+        return f"{self.head_character}: {len(self.members)}"
 
 def main():
     """ Quick demo of the library """
-    
-    gy = GuangYun()
-    print(gy)
+
+    guang_yun = GuangYun()
+    print(guang_yun)
 
 if __name__ == "__main__":
     main()
