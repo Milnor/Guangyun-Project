@@ -17,7 +17,8 @@ class GuangYun:
     """ Object representation of a Song rhyme dictionary """
 
     def __new__(cls):
-        # Stolen boilerplate to make it a singleton:
+        # Boilerplate to make it a singleton adapted from:
+        #  https://geeksforgeeks.org/singleton-pattern-in-python-a-complete-guide
         if not hasattr(cls, 'instance'):
             cls.instance = super(GuangYun, cls).__new__(cls)
         return cls.instance
@@ -54,6 +55,7 @@ class GuangYun:
             rhyme_dict += f"\t* {vol}\n"
         return rhyme_dict
 
+
 class Volume:
     """ One of the five volumes of the rhyme dictionary """
 
@@ -63,17 +65,13 @@ class Volume:
         self.tone = tone
 
         for rhyme in volume_data.findall('rhyme'):
-            # each[0].text = yi, er, san
-            #breakpoint()
-            #for zi in rhyme.findall('voice_part'):
-                # zi[0].text = dong
-                # zi[1].text = next homophone...
-                # then the next iteration gives the next rhyme
-            #breakpoint()
+            rhyme_group_name = rhyme[1][0].text
+            print(f"{self.name}: {rhyme_group_name}")
             self.rhymes.append(Rhyme(rhyme, rhyme[1][0].text))
 
     def __str__(self):
         return f"{self.name}, {self.tone}, {len(self.rhymes)} rhymes"
+
 
 class Rhyme:
     """ A rhyme group """
@@ -81,31 +79,35 @@ class Rhyme:
     def __init__(self, rhyme_data: ET.Element, name: str):
         self.head_character = name
         self.homophone_groups = []
-        #print(type(rhyme_data))
+        self.tong_yong = None
+        # TODO: implement tong_yong vs du_yong
+
+        print(f"{self.head_character}:", end="")
         for group in rhyme_data.findall('voice_part'):
             if "\n" not in group[0].text:
-                self.homophone_groups.append(Homophone_Group(group, group[0].text))
-        #print(self.homophone_groups)
+                self.homophone_groups.append(HomophoneGroup(group, group[0].text))
+            print(group[0].text, end="")
+        print()
 
     def __str__(self):
         return f"{self.head_character} rhyme group, {len(self.homophone_groups)} xiao yun"
 
-class Homophone_Group:
+class HomophoneGroup:
     """ A xiaoyun """
 
-    def __init__(self, group, name):
+    def __init__(self, group: ET.Element, name: str):
         self.head_character = name
-        breakpoint()
-        print(f"{self.head_character=}")
-        self.fanqie = group[0][0][1].text
+        print(type(group))
+        # TODO: capture fanqie, line below is mostly correct
+        # but it fails on some edge cases:
+        #self.fanqie = group[0][0][1].text
         self.members = []
         for each in group:
             self.members.append(each.text)
-        #breakpoint()
-        #print(f"{self.head_character=}")
 
     def __str__(self):
         return f"{self.head_character}: {len(self.members)}"
+
 
 def main():
     """ Quick demo of the library """
