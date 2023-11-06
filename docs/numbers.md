@@ -16,5 +16,5 @@
 | 十     | shi               | sap       | ship   | ju       |
 
 ## References
-* [Numbers: How to Count in Cantonese](www.cantoneseclass101.com/blog/2019/10/24/cantonese-numbers/)   
+* [Numbers: How to Count in Cantonese](https://www.cantoneseclass101.com/blog/2019/10/24/cantonese-numbers/)   
 
