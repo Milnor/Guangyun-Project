@@ -55,6 +55,25 @@ class GuangYun:
             rhyme_dict += f"\t* {vol}\n"
         return rhyme_dict
 
+    def char_count(self):
+        total = 0
+        for vol in self.volumes:
+            total += vol.char_count()
+        return total
+
+    def lookup(self, zi):
+        """ Return whether the character zi exists in the Guang Yun """
+        # If found, also return its tone, rhyme, and xiaoyun
+        results = [] # could this be replaced with list comprehension?
+        for vol in self.volumes:
+            result = vol.lookup(zi)
+            if result:
+                results.append(result)
+        if len(results) > 0:
+            return results
+        else:
+            return None
+   
 
 class Volume:
     """ One of the five volumes of the rhyme dictionary """
@@ -66,12 +85,25 @@ class Volume:
 
         for rhyme in volume_data.findall('rhyme'):
             rhyme_group_name = rhyme[1][0].text
-            print(f"{self.name}: {rhyme_group_name}")
+            #print(f"{self.name}: {rhyme_group_name}")
             self.rhymes.append(Rhyme(rhyme, rhyme[1][0].text))
 
     def __str__(self):
         return f"{self.name}, {self.tone}, {len(self.rhymes)} rhymes"
 
+    def char_count(self):
+        total = 0
+        for rhyme in self.rhymes:
+            total += rhyme.char_count()
+        return total
+
+    def lookup(self, zi):
+        """ Return whether the character zi exists in this volume """
+        for rhyme in self.rhymes:
+            result = rhyme.lookup(zi)
+            if result:
+                return self.tone, result[0], result[1]
+        return None
 
 class Rhyme:
     """ A rhyme group """
@@ -82,22 +114,37 @@ class Rhyme:
         self.tong_yong = None
         # TODO: implement tong_yong vs du_yong
 
-        print(f"{self.head_character}:", end="")
+        #print(f"{self.head_character}:", end="")
         for group in rhyme_data.findall('voice_part'):
             if "\n" not in group[0].text:
                 self.homophone_groups.append(HomophoneGroup(group, group[0].text))
-            print(group[0].text, end="")
-        print()
+            #print(group[0].text, end="")
+        #print()
 
     def __str__(self):
         return f"{self.head_character} rhyme group, {len(self.homophone_groups)} xiao yun"
+
+    def char_count(self):
+        total = 0
+        for group in self.homophone_groups:
+            total += group.char_count()
+        return total
+
+    def lookup(self, zi):
+        """ Return rhyme group and homophone group head characters if zi is found """
+        for group in self.homophone_groups:
+            result = group.lookup(zi)
+            if result:
+                return self.head_character, result
+        return None
+
 
 class HomophoneGroup:
     """ A xiaoyun """
 
     def __init__(self, group: ET.Element, name: str):
         self.head_character = name
-        print(type(group))
+        #print(type(group))
         # TODO: capture fanqie, line below is mostly correct
         # but it fails on some edge cases:
         #self.fanqie = group[0][0][1].text
@@ -108,12 +155,26 @@ class HomophoneGroup:
     def __str__(self):
         return f"{self.head_character}: {len(self.members)}"
 
+    def char_count(self):
+        return len(self.members)
+
+    def lookup(self, zi):
+        """ Return head character if zi is in this homophone group """
+        if zi in self.members:
+            return self.head_character
+        
+        return None
 
 def main():
     """ Quick demo of the library """
 
     guang_yun = GuangYun()
     print(guang_yun)
+
+    print(f"Total characters: {guang_yun.char_count()}")
+
+    print(f"Lookup(上): {guang_yun.lookup('上')}")
+    print(f"Lookup(Jackie Chan): {guang_yun.lookup('Jackie Chan')}")
 
 if __name__ == "__main__":
     main()
