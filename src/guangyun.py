@@ -26,7 +26,7 @@ class GuangYun:
     def __init__(self):
         self.volumes = []
         # Read in the XML tree
-        tree = ET.parse('../data/sbgy.xml')
+        tree = ET.parse('./data/sbgy.xml')
         root = tree.getroot()
 
         four_tones = ["平", "上", "去", "入"]
