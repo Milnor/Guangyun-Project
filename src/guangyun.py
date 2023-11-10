@@ -56,6 +56,7 @@ class GuangYun:
         return rhyme_dict
 
     def char_count(self):
+        """ Return character entry count for entire rhyme dictionary """
         total = 0
         for vol in self.volumes:
             total += vol.char_count()
@@ -71,12 +72,11 @@ class GuangYun:
                 results.append(result)
         if len(results) > 0:
             return results
-        else:
-            return None
-   
+        return None
+
 
 class Volume:
-    """ One of the five volumes of the rhyme dictionary """
+    """ One of the five volumes/scrolls (juan 卷) of the rhyme dictionary """
 
     def __init__(self, volume_data: ET.Element, name: str, tone: Tone):
         self.rhymes = []
@@ -85,13 +85,13 @@ class Volume:
 
         for rhyme in volume_data.findall('rhyme'):
             rhyme_group_name = rhyme[1][0].text
-            #print(f"{self.name}: {rhyme_group_name}")
-            self.rhymes.append(Rhyme(rhyme, rhyme[1][0].text))
+            self.rhymes.append(Rhyme(rhyme, rhyme_group_name))
 
     def __str__(self):
         return f"{self.name}, {self.tone}, {len(self.rhymes)} rhymes"
 
     def char_count(self):
+        """ Return character entry count for entire volume """
         total = 0
         for rhyme in self.rhymes:
             total += rhyme.char_count()
@@ -125,6 +125,7 @@ class Rhyme:
         return f"{self.head_character} rhyme group, {len(self.homophone_groups)} xiao yun"
 
     def char_count(self):
+        """ Return character entry count for entire rhyme group """
         total = 0
         for group in self.homophone_groups:
             total += group.char_count()
@@ -140,7 +141,7 @@ class Rhyme:
 
 
 class HomophoneGroup:
-    """ A xiaoyun """
+    """ A xiaoyun (小韻) """
 
     def __init__(self, group: ET.Element, name: str):
         self.head_character = name
@@ -156,14 +157,16 @@ class HomophoneGroup:
         return f"{self.head_character}: {len(self.members)}"
 
     def char_count(self):
+        """ Return character entry count for homophone group """
         return len(self.members)
 
     def lookup(self, zi):
         """ Return head character if zi is in this homophone group """
         if zi in self.members:
             return self.head_character
-        
+
         return None
+
 
 def main():
     """ Quick demo of the library """
@@ -173,8 +176,15 @@ def main():
 
     print(f"Total characters: {guang_yun.char_count()}")
 
-    print(f"Lookup(上): {guang_yun.lookup('上')}")
-    print(f"Lookup(Jackie Chan): {guang_yun.lookup('Jackie Chan')}")
+    shang_matches = guang_yun.lookup('上')
+    print(f"The character 上 occurs {len(shang_matches)} times in the Guang Yun.")
+
+    ja_matches = guang_yun.lookup('자')
+    if ja_matches:
+        print("Did you know there is hangul in the Guang Yun?")
+    else:
+        print("The Guang Yun was published long before hangul was invented.")
+
 
 if __name__ == "__main__":
     main()
