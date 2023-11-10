@@ -1,5 +1,6 @@
 appdirs==1.4.4
 cihai==0.28.0
+coverage==7.3.2
 greenlet==3.0.1
 mypy==1.6.1
 mypy-extensions==1.0.0
