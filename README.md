@@ -27,16 +27,16 @@ The goal is to create something that is user friendly and reliable enough for se
 * Python library, to maximize flexibility for users who code
 * Windows executable, to minimize required technical expertise
 
-## Upcoming TODOs (as of 1 Jan 2021)
-* add tests for tonal distribution
-* add tests for rhyme
-    * strict, by rhyme group
-    * distinguish du yong vs. tong yong
-* find reliable, large dataset, maybe ctext API
-    * then extensive testing and tweaking
-    * generate initial statistics
-* rewrite this README, cite sources, be professional
-
+## Upcoming TODOs (as of 10 Feb 2023)
+* [ ] add tests for tonal distribution
+* [ ] add tests for rhyme
+    * [ ] strict, by rhyme group
+    * [ ] distinguish du yong vs. tong yong
+* [ ] add *fanqie* to parsing
+* [x] find reliable, large dataset
+    * [cjkvi-dict](https://github.com/cjkvi/cjkvi-dict/) is licensed GPLv2
+    * provenance appears to be https://kanji-database.sourceforge.net/
+<!--
 ## Misc
 
 Notes to self: upgrading pip and installing cihai...
@@ -47,3 +47,4 @@ python3 -m pip install --upgrade pip
 ```
 python3 -m pip install --user cihai
 ```
+-->
