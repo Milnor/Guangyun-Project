@@ -133,7 +133,7 @@ def main():
 
 	# Install Unihan if needed
 	if not c_dict.unihan.is_bootstrapped:
-		c.unihan.bootstrap()
+		c_dict.unihan.bootstrap()
 
 	c_dict.unihan.add_plugin(
 		'cihai.data.unihan.dataset.UnihanVariants', namespace='variants'
