@@ -6,7 +6,7 @@ import sys
 
 from pathlib import Path
 
-from guangyun import Tone, GuangYun
+from src.guangyun import Tone, GuangYun
 
 guang_yun = GuangYun()
 

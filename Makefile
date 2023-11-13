@@ -9,7 +9,12 @@ code-coverage:
 .PHONY: lint-python
 lint-python:
 	# Ignore TODOs and short variable names like zi (字)
-	pylint --disable=fixme,invalid-name src/guangyun.py
+	pylint --disable=fixme,invalid-name -j $$(nproc) src/guangyun.py \
+		test/test_guangyun.py test/test_prosody.py
+
+.PHONY: unit-tests
+unit-tests:
+	python3 -m unittest
 
 .PHONY: clean
 clean:
