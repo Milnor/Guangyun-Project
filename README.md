@@ -23,19 +23,8 @@ $ ./ping_ze_poc.py test_inputs/libai.txt
 
 The goal is to create something that is user friendly and reliable enough for serious work by professors and grad students.
 
-**Possible Future Directions**
-* Python library, to maximize flexibility for users who code
-* Windows executable, to minimize required technical expertise
-
-## Upcoming TODOs (as of 10 Feb 2023)
-* [ ] add tests for tonal distribution
-* [ ] add tests for rhyme
-    * [ ] strict, by rhyme group
-    * [ ] distinguish du yong vs. tong yong
-* [ ] add *fanqie* to parsing
-* [x] find reliable, large dataset
-    * [cjkvi-dict](https://github.com/cjkvi/cjkvi-dict/) is licensed GPLv2
-    * provenance appears to be https://kanji-database.sourceforge.net/
+The dataset used is the XML Song Ben Guang Yun from 
+[cjkvi-dict](https://github.com/cjkvi/cjkvi-dict/), which is licensed GPLv2. See also https://kanji-database.sourceforge.net/
 <!--
 ## Misc
 
