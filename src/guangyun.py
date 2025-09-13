@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """ Build the Guang Yun rhyme dictionary from XML """
 
-import xml.etree.ElementTree as ET
+#import xml.etree.ElementTree as ET
+#import json
 
 from enum import Enum
+from pathlib import Path
+
+import xmltodict
 
 class Tone(Enum):
     """ The four tonal values of Middle Chinese """
@@ -11,43 +15,20 @@ class Tone(Enum):
     SHANG = 2
     QU = 3
     RU = 4
-
+    #four_tones = ["平", "上", "去", "入"]
 
 class GuangYun:
     """ Object representation of a Song rhyme dictionary """
 
-    def __new__(cls):
-        # Boilerplate to make it a singleton adapted from:
-        #  https://geeksforgeeks.org/singleton-pattern-in-python-a-complete-guide
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(GuangYun, cls).__new__(cls)
-        return cls.instance
-
-    def __init__(self):
+    def __init__(self, file_path: Path) -> None:
         self.volumes = []
-        # Read in the XML tree
-        tree = ET.parse('./data/sbgy.xml')
-        root = tree.getroot()
+        # Read in the XML tree and convert to dict
+        with open(file_path, 'r', encoding='utf-8') as xml_file:
+            _as_xml = xml_file.read()
+            database = xmltodict.parse(_as_xml)
 
-        four_tones = ["平", "上", "去", "入"]
-
-        # Store each volume: Shang Ping, Xia Ping, Shang, Qu, Ru
-        for volume_data in root.findall('volume'):
-            name = volume_data[0].text
-            match name[-5]:
-                case "平":
-                    tone = Tone.PING
-                case "上":
-                    tone = Tone.SHANG
-                case "去":
-                    tone = Tone.QU
-                case "入":
-                    tone = Tone.RU
-                case _:
-                    raise ValueError(f"Expected one of {four_tones}")
-
-            self.volumes.append(Volume(volume_data, name, tone))
-
+            for volume in database['book']['volume']:
+                self.volumes.append(Volume(volume))
 
     def __str__(self):
         rhyme_dict = "Guang Yun Rhyme Dictionary:\n"
@@ -77,115 +58,89 @@ class GuangYun:
 
 class Volume:
     """ One of the five volumes/scrolls (juan 卷) of the rhyme dictionary """
+    
+    def __init__(self, juan_data: dict) -> None:
+        self.rhyme_groups = []
+        self.compatibility: dict = self._build_compatibility(
+                                juan_data['catalog']['rhythmic_entry']
+                                )
+        self.title: str = juan_data['volume_title']
+        print(f"My title is {self.title}")
+        #breakpoint()
+        for group in juan_data['rhyme']:
+            self.rhyme_groups.append(RhymeGroup(group))
+    
+    def _build_compatibility(self, metadata: list) -> dict:
+        """Generate dictionary for tongyong vs. duyong lookup."""
+        tongyong = {} # Rhyme groups that mutually rhyme
+        for entry in metadata:
+            rhyme_group = entry['#text'][0] # e.g. first in '東第一'
+            if 'note' in entry.keys():
+                # Two forms: '獨用' or 'X[Y]同用'
+                if entry['note'] == '獨用':
+                    # Does not rhyme with other rhyme groups
+                    tongyong[rhyme_group] = None
+                else:
+                    compatible = set()
+                    compatible.add(rhyme_group)
+                    for each in entry['note'][:-2]:
+                        compatible.add(each)
+                    for character in compatible:
+                        tongyong[character] = compatible - set(character)
+            else:
+                # tongyong membership listed previously
+                if not tongyong[rhyme_group]:
+                    raise LookupError(f"{rhyme_group} was not added to dictionary.")
+            #breakpoint()
+        #print(f"{tongyong=}")
 
-    def __init__(self, volume_data: ET.Element, name: str, tone: Tone):
-        self.rhymes = []
-        self.name = name
-        self.tone = tone
 
-        for rhyme in volume_data.findall('rhyme'):
-            rhyme_group_name = rhyme[1][0].text
-            self.rhymes.append(Rhyme(rhyme, rhyme_group_name))
-
-    def __str__(self):
-        return f"{self.name}, {self.tone}, {len(self.rhymes)} rhymes"
-
-    def char_count(self):
-        """ Return character entry count for entire volume """
-        total = 0
-        for rhyme in self.rhymes:
-            total += rhyme.char_count()
-        return total
-
-    def lookup(self, zi):
-        """ Return whether the character zi exists in this volume """
-        for rhyme in self.rhymes:
-            result = rhyme.lookup(zi)
-            if result:
-                return self.tone, result[0], result[1]
-        return None
-
-class Rhyme:
+class RhymeGroup:
     """ A rhyme group """
 
-    def __init__(self, rhyme_data: ET.Element, name: str):
-        self.head_character = name
+    def __init__(self, yun_data: dict) -> None:
         self.homophone_groups = []
-        self.tong_yong = None
-        # TODO: implement tong_yong vs du_yong
-
-        #print(f"{self.head_character}:", end="")
-        for group in rhyme_data.findall('voice_part'):
-            if "\n" not in group[0].text:
-                self.homophone_groups.append(HomophoneGroup(group, group[0].text))
-            #print(group[0].text, end="")
-        #print()
-
-    def __str__(self):
-        return f"{self.head_character} rhyme group, {len(self.homophone_groups)} xiao yun"
-
-    def char_count(self):
-        """ Return character entry count for entire rhyme group """
-        total = 0
-        for group in self.homophone_groups:
-            total += group.char_count()
-        return total
-
-    def lookup(self, zi):
-        """ Return rhyme group and homophone group head characters if zi is found """
-        for group in self.homophone_groups:
-            result = group.lookup(zi)
-            if result:
-                return self.head_character, result
-        return None
+        self.head_character = yun_data['voice_part'][0]['word_head'][0]['#text']
+        print(f"Rhyme Group: {self.head_character}")
+        
+        for homophones in yun_data['voice_part']:
+            self.homophone_groups.append(HomophoneGroup(homophones))
 
 
 class HomophoneGroup:
     """ A xiaoyun (小韻) """
 
-    def __init__(self, group: ET.Element, name: str):
-        self.head_character = name
-        #print(type(group))
-        # TODO: capture fanqie, line below is mostly correct
-        # but it fails on some edge cases:
-        #self.fanqie = group[0][0][1].text
+    def __init__(self, xiaoyun_data: dict) -> None:
+        # An individual Chinese character is a zi
+        #breakpoint()
+
         self.members = []
-        for each in group:
-            self.members.append(each.text)
 
-    def __str__(self):
-        return f"{self.head_character}: {len(self.members)}"
+        try:
+            self.head_character = xiaoyun_data['word_head'][0]['#text']
+        except Exception:
+            # '㟅' is idiosyncratic, single character dict, not a list
+            self.head_character = xiaoyun_data['word_head']['#text']
 
-    def char_count(self):
-        """ Return character entry count for homophone group """
-        return len(self.members)
+        # There is an idiosyncracy in the fanqie entry for feng 豐
+        # 豐 {'original_text': {'rewrite_text': '隆', '#text': '牢'}, '#text': '敷切'} ['豐', '酆', '蘴', '灃', '寷', '麷', '㒥', '㠦']
+        try:
+            self.fanqie = xiaoyun_data['word_head'][0]['note']['fanqie']
+        except Exception as e:
+            print(f"{e=}")
+            # '㟅' has '五東切'
+            self.fanqie = xiaoyun_data['word_head']['note']['fanqie']
 
-    def lookup(self, zi):
-        """ Return head character if zi is in this homophone group """
-        if zi in self.members:
-            return self.head_character
-
-        return None
-
-
-def main():
-    """ Quick demo of the library """
-
-    guang_yun = GuangYun()
-    print(guang_yun)
-
-    print(f"Total characters: {guang_yun.char_count()}")
-
-    shang_matches = guang_yun.lookup('上')
-    print(f"The character 上 occurs {len(shang_matches)} times in the Guang Yun.")
-
-    ja_matches = guang_yun.lookup('자')
-    if ja_matches:
-        print("Did you know there is hangul in the Guang Yun?")
-    else:
-        print("The Guang Yun was published long before hangul was invented.")
-
-
-if __name__ == "__main__":
-    main()
-
+        try:
+            for each in xiaoyun_data['word_head']:
+                self.members.append(each['#text'])        
+        
+        #for character in xiaoyun_data['word_head']:
+        except Exception as e:
+            # This weird edge case involves 𪔜 vs 𪔝 under head char 同
+            # or if that's wrong, each['original_word']['rewrite_word']  
+            self.members.append(each['original_word']['#text'])
+            #breakpoint()
+        finally:
+            print(f"\t{self.head_character} {self.fanqie} {self.members}")
+    
