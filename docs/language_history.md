@@ -1,4 +1,19 @@
-# Numbers Comparison
+# History of the Chinese Language
+
+Simplistic overview for the layperson. Not a scholarly reference!
+
+## Periodization
+
+TODO: look these up in Jerry Norman or other good reference.
+
+* Old Chinese, ca. 1000 BC - AD 300
+
+* Middle Chinese, ca. AD 300 - AD 1300
+
+* Modern Chinese, ca. AD 1300 - present
+
+## Numbers Comparison
+
 * A visual aid for some basics of Chinese historical phonology
 
 | Number | Mandarin (pinyin) | Cantonese | Korean | Japanese |
@@ -16,5 +31,5 @@
 | 十     | shi               | sap       | ship   | ju       |
 
 ## References
-* [Numbers: How to Count in Cantonese](https://www.cantoneseclass101.com/blog/2019/10/24/cantonese-numbers/)   
 
+* [Numbers: How to Count in Cantonese](https://www.cantoneseclass101.com/blog/2019/10/24/cantonese-numbers/)
